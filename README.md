@@ -14,6 +14,7 @@ This repo holds all the code for my SAM backend. It is a bit of a weird structur
 │       └── post-content (POST api to post a round/content)
 
 ````
+I have a package.json in the root so that I can use npm run scripts to test the main with a sample command.
 
 I need to implement the following API's, and need to figure out/optimize the Dynamo queries.
 
