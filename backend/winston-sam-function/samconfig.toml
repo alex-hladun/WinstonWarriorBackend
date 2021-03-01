@@ -1,0 +1,10 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "winston-sam-project-2-noimages"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-drmcob6sr0qu"
+s3_prefix = "winston-sam-project-2-noimages"
+region = "us-west-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"

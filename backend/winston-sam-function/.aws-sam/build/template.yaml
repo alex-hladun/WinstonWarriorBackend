@@ -1,0 +1,113 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'winston-sam-function
+
+  Sample SAM Template for winston-sam-function
+
+  '
+Globals:
+  Function:
+    Timeout: 3
+    Runtime: nodejs12.x
+Resources:
+  HelloWorldFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: HelloWorldFunction
+      Handler: app.lambdaHandler
+      Layers:
+      - Ref: DependencyLayer
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /hello
+            Method: get
+    Policies: -AmazonDynamoDBFullAccess
+  GetRoundsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: GetRoundsFunction
+      Handler: app.lambdaHandler
+      Layers:
+      - Ref: DependencyLayer
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /rounds
+            Method: get
+    Policies: -AmazonDynamoDBFullAccess
+  PostContentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: PostContentFunction
+      Handler: app.lambdaHandler
+      Layers:
+      - Ref: DependencyLayer
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /rounds
+            Method: post
+    Policies: -AmazonDynamoDBFullAccess
+  DependencyLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: sam-app-dependencies
+      Description: Node dependencies for the app.
+      ContentUri: ../../dependencies
+      CompatibleRuntimes:
+      - nodejs12.x
+      LicenseInfo: MIT
+      RetentionPolicy: Retain
+Outputs:
+  HelloWorldApi:
+    Description: API Gateway endpoint URL for Prod stage for Hello World function
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/
+  HelloWorldFunction:
+    Description: Hello World Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - HelloWorldFunction
+      - Arn
+  HelloWorldFunctionIamRole:
+    Description: Implicit IAM Role created for Hello World function
+    Value:
+      Fn::GetAtt:
+      - HelloWorldFunctionRole
+      - Arn
+  GetRoundsApi:
+    Description: API Gateway endpoint URL for Prod stage for Get Rounds function
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/rounds/
+  GetRoundsFunction:
+    Description: GetRoundsFunction Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - GetRoundsFunction
+      - Arn
+  GetRoundsFunctionIamRole:
+    Description: Implicit IAM Role created for GetRoundsFunction
+    Value:
+      Fn::GetAtt:
+      - GetRoundsFunctionRole
+      - Arn
+  PostContentApi:
+    Description: API Gateway endpoint URL for Prod stage for PostContent upfunction
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/rounds/
+  PostContentFunction:
+    Description: PostContentFunction Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - PostContentFunction
+      - Arn
+  PostContentFunctionIamRole:
+    Description: Implicit IAM Role created for PostContentFunction
+    Value:
+      Fn::GetAtt:
+      - PostContentFunctionRole
+      - Arn
