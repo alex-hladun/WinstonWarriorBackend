@@ -1,5 +1,31 @@
 # winston-sam-function
 
+
+## Alex's Notes
+
+This repo holds all the code for my SAM backend. It is a bit of a weird structure, as folows:
+```
+├── backend (Contains seed data and main.js, used for testing SDK)
+│   └── winston-sam-function (SAM repo)
+│       ├── dependencies (lambda layer with dependencies)
+│       │   └── nodejs *
+│       ├── get-rounds (get rounds/posts from ppl user is following)
+│       ├── hello-world (example from the initial tutorial)
+│       └── post-content (POST api to post a round/content)
+
+````
+
+I need to implement the following API's, and need to figure out/optimize the Dynamo queries.
+
+API To-do: 
+*  API to GET all users (to show follow list)
+* API to react on a post (comment or like)
+* API to follow
+* API to unfollow
+* API to delete posts
+
+
+## Original Tutorial README
 This project contains source code and supporting files for a serverless application that you can deploy with the SAM CLI. It includes the following files and folders.
 
 - hello-world - Code for the application's Lambda function and Project Dockerfile.
@@ -115,9 +141,3 @@ See the [AWS SAM developer guide](https://docs.aws.amazon.com/serverless-applica
 Next, you can use AWS Serverless Application Repository to deploy ready to use Apps that go beyond hello world samples and learn how authors developed their applications: [AWS Serverless Application Repository main page](https://aws.amazon.com/serverless/serverlessrepo/)
 
 
-API Checklist
-* []API to GET all users (to show follow list)
-* []API to react on a post (comment)
-* []API to follow
-* []API to unfollow
-* []API to delete posts
