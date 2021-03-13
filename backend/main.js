@@ -1,16 +1,18 @@
 var AWS = require("aws-sdk");
 const { mockData } = require("./data");
-const arg = process.argv[2];
+var credentials = new AWS.SharedIniFileCredentials({ profile: "dynamo" });
 
 AWS.config.update({
   region: "us-west-2",
-  endpoint: "https://dynamodb.us-west-2.amazonaws.com"
+  endpoint: "https://dynamodb.us-west-2.amazonaws.com",
+  credentials: credentials
 });
 
+const arg = process.argv[2];
 var dynamodb = new AWS.DynamoDB();
 var dynamo = new AWS.DynamoDB.DocumentClient();
 
-const user = "alexhladun";
+const user = "ahladun";
 var params = {
   TableName: "winston",
   KeySchema: [
@@ -53,9 +55,122 @@ var updateParams = {
   ]
 };
 
+const getAllUsers = async () => {
+  const userParams = {
+    TableName: "winston",
+    IndexName: "ContentType-username-index",
+    KeyConditionExpression: "ContentType = :pk",
+    ExpressionAttributeValues: {
+      ":pk": `profile`
+    }
+  };
+
+  try {
+    const allUsers = await dynamo.query(userParams).promise();
+    const sortedUsers = allUsers.Items.sort((a, b) => {
+      var textA = a.username.toUpperCase();
+      var textB = b.username.toUpperCase();
+      return textA < textB ? -1 : textA > textB ? 1 : 0;
+    });
+    console.log("🚀  allUsers", sortedUsers);
+  } catch (err) {
+    console.log("ERR GETTING ALL USERS", err);
+  }
+};
+
+const followUser = async (followingUser, followedUser, type) => {
+  try {
+    if (type === "unfollow") {
+      const deleteParams = {
+        TableName: "winston",
+        Key: {
+          PK: `USER#${followingUser}`,
+          SK: `#FRIEND#${followedUser}`
+        }
+      };
+      await dynamo.delete(deleteParams).promise();
+    } else if (type === "follow") {
+      const queryParams = {
+        TableName: "winston",
+        Item: {
+          PK: `USER#${followingUser}`,
+          SK: `#FRIEND#${followedUser}`
+        }
+      };
+      queryParams.Item.timestamp = Date.now();
+      queryParams.Item.followingUser = followingUser;
+      queryParams.Item.followedUser = followedUser;
+      console.log(
+        "🚀 ~ file: main.js ~ line 97 ~ followUser ~ queryParams",
+        queryParams
+      );
+      await dynamo.put(queryParams).promise();
+    }
+  } catch (err) {
+    console.log("ERROR", err);
+  }
+};
+
+const react = async (
+  reactingUser,
+  roundId,
+  reactionType,
+  reactionComment = ""
+) => {
+  const queryParams = {
+    TableName: "winston",
+    Item: {
+      PK: `REACTION#${reactingUser}#${reactionType}`,
+      SK: `${roundId}`,
+      reactingUser,
+      reactionType: reactionType === "like" ? "like" : reactionComment,
+      timestamp: Date.now(),
+      round: roundId
+    }
+  };
+  console.log(
+    "🚀 ~ file: main.js ~ line 97 ~ followUser ~ queryParams",
+    queryParams
+  );
+  await dynamo.put(queryParams).promise();
+  return;
+};
+
+const enrichRounds = async (rounds) => {
+  const enrichedKeys = [];
+  const enrichedRounds = await new Promise((resolve, reject) => {
+    rounds.forEach(async (round, index, array) => {
+      const roundSk = round["SK"];
+      const enrichQueryParams = {
+        TableName: "winston",
+        IndexName: "InvertedIndex",
+        KeyConditionExpression: "SK = :sk AND begins_with(PK, :reactions)",
+        ExpressionAttributeValues: {
+          ":reactions": "REACTION",
+          ":sk": roundSk
+        },
+        ScanIndexForward: true
+      };
+      try {
+        const enrichedRoundItem = await dynamo
+          .query(enrichQueryParams)
+          .promise();
+        enrichedKeys.push({ ...round, reactions: enrichedRoundItem });
+
+        if (index === array.length - 1) {
+          resolve(enrichedKeys);
+        }
+      } catch (err) {
+        // console.log("ERROR ENRICHING", err);
+      }
+    });
+  });
+  return enrichedRounds;
+};
+
 const getRoundsForUser = async (user) => {
   let keys = [];
-  console.log("CREATING A LIST OF ALL FRIENDS POSTS IN CHRONOLOGICAL ORDEER");
+  console.log("CREATING A LIST OF ALL FRIENDS POSTS IN CHRONOLOGICAL ORDErR");
 
   const queryParams5 = {
     TableName: "winston",
@@ -69,18 +184,9 @@ const getRoundsForUser = async (user) => {
 
   try {
     const followingUsers = await dynamo.query(queryParams5).promise();
-    console.log(
-      "🚀 ~ file: main.js ~ line 85 ~ getRoundsForUser ~ followingUsers",
-      followingUsers
-    );
 
-    // const res4 = await dynamodb.query(queryParams4).promise();
-    await new Promise((resolve, reject) => {
+    const followingUserRounds = await new Promise((resolve, reject) => {
       followingUsers.Items.forEach(async (item, index, array) => {
-        console.log(
-          "🚀 ~ file: main.js ~ line 90 ~ res9.Items.forEach ~ item",
-          item
-        );
         const userItem = await dynamo
           .query({
             TableName: "winston",
@@ -93,16 +199,20 @@ const getRoundsForUser = async (user) => {
           })
           .promise();
 
-        console.log(
-          "🚀 ~ file: main.js ~ line 97 ~ res4.Items.forEach ~ userItem.Items",
-          userItem.Items
-        );
-        userItem.Items.forEach((x) => keys.push(x));
-        if (index === array.length - 1) resolve();
+        userItem.Items.forEach(async (x) => {
+          keys.push(x);
+        });
+        if (index === array.length - 1) {
+          const finalkeys = await enrichRounds(keys);
+          resolve(finalkeys);
+        }
       });
-    }).then(() => {
-      console.log("FINAL FOLLOWING LIST", keys);
+    }).then((res) => {
+      console.log("FINAL FOLLOWING LIST", res);
+      return keys;
     });
+
+    return followingUserRounds;
   } catch (err) {
     console.log("ERROR", err.message);
   }
@@ -118,7 +228,7 @@ const makePostForUser = async (user) => {
         SK: `ROUND#${user}${Date.now()}`,
         timestamp: Date.now(),
         ImageURI: "sample.jpg",
-        ContentType: 'pic',
+        ContentType: "pic",
         text: "Sample text"
       }
     },
@@ -127,6 +237,11 @@ const makePostForUser = async (user) => {
       console.log("data", data);
     }
   );
+};
+
+const getAsync = async (user) => {
+  const rounds = await getRoundsForUser(user);
+  console.log("🚀 ~ file: main.js ~ line 244 ~ getAsync ~ rounds", rounds);
 };
 
 switch (arg) {
@@ -308,7 +423,7 @@ switch (arg) {
     });
     break;
   case "READ3":
-    // Data is round and all reactions
+    // Data is all of followers encriched data
     const queryParams3 = {
       TableName: "winston",
       IndexName: "InvertedIndex",
@@ -352,9 +467,24 @@ switch (arg) {
     });
     break;
   case "READ4":
-    getRoundsForUser(user);
+    const rounds = getRoundsForUser(user);
+    console.log("🚀 ~ file: main.js ~ line 466 ~ enrichedRounds", rounds);
     break;
   case "POST":
     makePostForUser(user);
+    break;
+  case "ALLUSERS":
+    getAllUsers();
+    break;
+  case "FOLLOWUSER":
+    followUser("mikesmith", "ahladun", "unfollow");
+    break;
+  case "REACT":
+    react(
+      "cgathercole",
+      "ROUND#ahladun#1614909366789",
+      "comment",
+      "nice round bro"
+    );
     break;
 }

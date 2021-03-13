@@ -22,4 +22,18 @@ source_md5 = ""
 packagetype = "Zip"
 functions = ["PostContentFunction"]
 
+[function_build_definitions.9a09b63e-d98e-45b4-b036-1c9eb9be24af]
+codeuri = "put-content/"
+runtime = "nodejs12.x"
+source_md5 = ""
+packagetype = "Zip"
+functions = ["PutContentFunction"]
+
+[function_build_definitions.9a977337-2785-463d-9f52-11c6db36f368]
+codeuri = "get-users/"
+runtime = "nodejs12.x"
+source_md5 = ""
+packagetype = "Zip"
+functions = ["GetUsersFunction"]
+
 [layer_build_definitions]

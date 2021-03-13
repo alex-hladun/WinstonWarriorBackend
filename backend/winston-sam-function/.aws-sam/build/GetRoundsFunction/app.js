@@ -29,7 +29,6 @@ const getRoundsForUser = async (user) => {
     // const res4 = await dynamodb.query(queryParams4).promise();
     const followingUserRounds = await new Promise((resolve, reject) => {
       followingUsers.Items.forEach(async (item, index, array) => {
-      
         const userItem = await dynamo
           .query({
             TableName: "winston",
@@ -87,12 +86,12 @@ exports.lambdaHandler = async (event, context) => {
 
   if (Object.keys(rounds).length > 0) {
     response.statusCode = 200;
-    response.body = JSON.stringify(rounds);
+    response.body = JSON.stringify(
+      rounds.sort((a, b) => b.timestamp - a.timestamp)
+    );
   } else {
     response.statusCode = 500;
-    response.body = {
-      error: "something happened"
-    };
+    response.body = JSON.stringify({});
   }
 
   return response;

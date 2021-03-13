@@ -52,6 +52,34 @@ Resources:
             Path: /rounds
             Method: post
     Policies: -AmazonDynamoDBFullAccess
+  PutContentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: PutContentFunction
+      Handler: app.lambdaHandler
+      Layers:
+      - Ref: DependencyLayer
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /rounds
+            Method: put
+    Policies: -AmazonDynamoDBFullAccess
+  GetUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: GetUsersFunction
+      Handler: app.lambdaHandler
+      Layers:
+      - Ref: DependencyLayer
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: get
+    Policies: -AmazonDynamoDBFullAccess
   DependencyLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -110,4 +138,28 @@ Outputs:
     Value:
       Fn::GetAtt:
       - PostContentFunctionRole
+      - Arn
+  PutContentFunction:
+    Description: PutContentFunction Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - PutContentFunction
+      - Arn
+  PutContentFunctionIamRole:
+    Description: Implicit IAM Role created for PostContentFunction
+    Value:
+      Fn::GetAtt:
+      - PutContentFunctionRole
+      - Arn
+  GetUsersFunction:
+    Description: GetUsersFunction Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - GetUsersFunction
+      - Arn
+  GetUsersFunctionIamRole:
+    Description: Implicit IAM Role created for PostContentFunction
+    Value:
+      Fn::GetAtt:
+      - GetUsersFunctionRole
       - Arn

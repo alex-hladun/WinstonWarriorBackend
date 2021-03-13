@@ -54,6 +54,62 @@ Resources:
             Path: /rounds
             Method: post
     Policies: -AmazonDynamoDBFullAccess
+  PutContentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: put-content/
+      Handler: app.lambdaHandler
+      Layers:
+        - !Ref DependencyLayer
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /rounds
+            Method: put
+    Policies: -AmazonDynamoDBFullAccess
+  GetUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get-users/
+      Handler: app.lambdaHandler
+      Layers:
+        - !Ref DependencyLayer
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: get
+    Policies: -AmazonDynamoDBFullAccess
+  FollowUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: put-users/
+      Handler: app.lambdaHandler
+      Layers:
+        - !Ref DependencyLayer
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: put
+    Policies: -AmazonDynamoDBFullAccess
+  ReactFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: put-reaction/
+      Handler: app.lambdaHandler
+      Layers:
+        - !Ref DependencyLayer
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /put-reaction
+            Method: put
+    Policies: -AmazonDynamoDBFullAccess
   DependencyLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -96,3 +152,27 @@ Outputs:
   PostContentFunctionIamRole:
     Description: "Implicit IAM Role created for PostContentFunction"
     Value: !GetAtt PostContentFunctionRole.Arn
+  PutContentFunction:
+    Description: "PutContentFunction Lambda Function ARN"
+    Value: !GetAtt PutContentFunction.Arn
+  PutContentFunctionIamRole:
+    Description: "Implicit IAM Role created for PostContentFunction"
+    Value: !GetAtt PutContentFunctionRole.Arn
+  GetUsersFunction:
+    Description: "GetUsersFunction Lambda Function ARN"
+    Value: !GetAtt GetUsersFunction.Arn
+  GetUsersFunctionIamRole:
+    Description: "Implicit IAM Role created for PostContentFunction"
+    Value: !GetAtt GetUsersFunctionRole.Arn
+  PutUsersFunction:
+    Description: "PutUsersFunction Lambda Function ARN"
+    Value: !GetAtt PutUsersFunction.Arn
+  PutUsersFunctionIamRole:
+    Description: "Implicit IAM Role created for PostContentFunction"
+    Value: !GetAtt PutUsersFunctionRole.Arn
+  ReactFunction:
+    Description: "ReactFunction Lambda Function ARN"
+    Value: !GetAtt ReactFunction.Arn
+  ReactFunctionIamRole:
+    Description: "Implicit IAM Role created for PostContentFunction"
+    Value: !GetAtt ReactFunctionRole.Arn
