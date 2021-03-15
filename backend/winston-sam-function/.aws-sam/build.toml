@@ -36,4 +36,18 @@ source_md5 = ""
 packagetype = "Zip"
 functions = ["GetUsersFunction"]
 
+[function_build_definitions.27b3925c-f8f0-480a-bb55-4acc45be9ec6]
+codeuri = "put-users/"
+runtime = "nodejs12.x"
+source_md5 = ""
+packagetype = "Zip"
+functions = ["PutUsersFunction"]
+
+[function_build_definitions.76c335ca-77b8-4192-84c5-37ab46778c3e]
+codeuri = "put-reaction/"
+runtime = "nodejs12.x"
+source_md5 = ""
+packagetype = "Zip"
+functions = ["ReactFunction"]
+
 [layer_build_definitions]

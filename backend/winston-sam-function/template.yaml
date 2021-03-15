@@ -82,7 +82,7 @@ Resources:
             Path: /users
             Method: get
     Policies: -AmazonDynamoDBFullAccess
-  FollowUsersFunction:
+  PutUsersFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: put-users/
